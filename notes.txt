@@ -1,0 +1,16 @@
+	python -c "import matplotlib; print(matplotlib.matplotlib_fname())"
+
+^^^this shows where the matplotlibrc file is
+to change the logging level of tensorflow gpu, which supresses the output related to its functionality, create and edit a .bashrc file for
+the conda environment you are working in
+
+	vim /home/NETID/bodhik/miniconda3/envs/python39/.bashrc
+		export TF_CPP_MIN_LOG_LEVEL=3
+		export MPLBACKEND=qtagg
+
+and in the file with the tensorflow code:
+	...
+	import matplotlib
+	matplotlib.use("qtagg")
+	import matplotlib.pyplot as plt
+	...	
