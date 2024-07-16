@@ -31,6 +31,11 @@ load_tfrecord_x_y_pair_recon_dataset(tfrecord_dir)
 load_original_recon_dataset(file_pattern)
 
 save_recon_dataset_as_tfrecords(x_y_pair_identifier_dataset)
+
+get_i_of_yi_dataset_from_datasets(xi_dataset, yi_dataset)
+
+xyi_dataset_from_xi_yi_datasets(xi_dataset, yi_dataset, 
+		identifier_dataset_function=get_i_of_yi_dataset_from_datasets)
 """
 
 
@@ -303,3 +308,35 @@ def save_recon_dataset_as_tfrecords(x_y_pair_identifier_dataset):
 	os.chdir(starting_directory) #return to starting directory
 	return  current_dir
 	#returns directory where files are stored in .tfrecord format
+
+
+# name: get_i_of_yi_dataset_from_datasets
+# purpose: select the identifier from second input dataset as identifier for combined xyi dataset
+# inputs: xi_dataset, yi_dataset
+# output: identifier_dataset; of tf.strings
+
+def get_i_of_yi_dataset_from_datasets(xi_dataset, yi_dataset):
+	i_of_yi_dataset = yi_dataset.map(
+		lambda y, i: i, num_parallel_calls=tf.data.AUTOTUNE)
+	return i_of_yi_dataset
+
+# name: xyi_dataset_from_xi_yi_datasets
+# purpose: collect tensor, tensorlabel, pairlabel data elements into a 3-tuple for storage
+# inputs: x, identifier, y, identifier, and identifier selector argument
+# output: x_y_pair_identifier dataset of tuples (x, y, identifier)
+
+def xyi_dataset_from_xi_yi_datasets(
+		xi_dataset, yi_dataset, 
+		identifier_dataset_function=get_i_of_yi_dataset_from_datasets):
+
+	x_dataset = xi_dataset.map(
+		lambda x, i: x, num_parallel_calls=tf.data.AUTOTUNE)
+	y_dataset = yi_dataset.map(
+		lambda y, i: y, num_parallel_calls=tf.data.AUTOTUNE)
+	
+	identifier_dataset = identifier_dataset_function(xi_dataset, yi_dataset)
+
+	xyi_dataset = tf.data.Dataset.zip(
+			(x_dataset, y_dataset, identifier_dataset))
+	
+	return xyi_dataset

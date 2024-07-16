@@ -9,7 +9,9 @@ from shard import (
 	where_tensor_plt, 
 	load_tfrecord_x_y_pair_recon_dataset,
 	load_original_recon_dataset, 
-	save_recon_dataset_as_tfrecords)
+	save_recon_dataset_as_tfrecords,
+	get_i_of_yi_dataset_from_datasets,
+	xyi_dataset_from_xi_yi_datasets)
 
 def editname(x, name):
 	return x, format_tfrecord_name(name)
@@ -34,16 +36,21 @@ loaded_dataset2 = loaded_dataset2.map(
 for e in loaded_dataset2.take(1):
 	tf.print("NAME:",e[1])#verify formatted titles
 
-nolabel_x = loaded_dataset1.map(#create x, y, identifier datasets
-	lambda x, label: x, num_parallel_calls=tf.data.AUTOTUNE)
-nolabel_y = loaded_dataset2.map(
-	lambda y, label: y, num_parallel_calls=tf.data.AUTOTUNE)
-label_y = loaded_dataset2.map(
-	lambda y, label: label, num_parallel_calls=tf.data.AUTOTUNE) 
+#nolabel_x = loaded_dataset1.map(#create x, y, identifier datasets
+#	lambda x, label: x, num_parallel_calls=tf.data.AUTOTUNE)
+#nolabel_y = loaded_dataset2.map(
+#	lambda y, label: y, num_parallel_calls=tf.data.AUTOTUNE)
+#label_y = loaded_dataset2.map(
+#	lambda y, label: label, num_parallel_calls=tf.data.AUTOTUNE) 
 
-x_y_pair_identifier_dataset = tf.data.Dataset.zip(
+x_y_pair_identifier_dataset = (
+	xyi_dataset_from_xi_yi_datasets(
+		loaded_dataset1, loaded_dataset2,
+		get_i_of_yi_dataset_from_datasets))
+
+#x_y_pair_identifier_dataset = tf.data.Dataset.zip(
 	#combine data elements to (x,y,identifier) tuples
-	(nolabel_x, nolabel_y, label_y))
+#	(nolabel_x, nolabel_y, label_y))
 
 where = [1,2,1]#print the content of a data entry in ^^^
 plt.figure(figsize=where[0:2])
